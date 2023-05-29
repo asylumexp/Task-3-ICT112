@@ -26,6 +26,8 @@ def main(restart=False):
         case 2:
             sys.exit(-1)
 
+    user_input = ui.check_player_data(data_store.retrieve_local_players())
+
 
 if __name__ == "__main__":
     main()

@@ -50,6 +50,9 @@ class DataStore:
     @staticmethod
     def retrieve_local_rooms():
         return glob("*-room.json")
+    @staticmethod
+    def retrieve_local_players():
+        return glob("*-player.json")
 
     def replace_data(self, chosen_file):
         with open(chosen_file, 'r') as file:

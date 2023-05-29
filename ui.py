@@ -25,8 +25,9 @@ class Ui:
         else:
             return files[self.selection]
 
-    def menu_selection(self):
-        pass
+    def check_player_data(self, players):
+        players.append("Continue as new player")
+        self.get_menu_selection(players)
 
     def get_menu_selection(self, menu):
         """
