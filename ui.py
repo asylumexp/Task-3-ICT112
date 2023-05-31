@@ -26,8 +26,13 @@ class Ui:
             return files[self.selection]
 
     def check_player_data(self, players):
+        self.selection = 0
         players.append("Continue as new player")
         self.get_menu_selection(players)
+        if self.selection == len(players)-1:
+            return ["New", input("What would you like to have your character's name to be?\n")]
+        else:
+            return ["", players[self.selection]]
 
     def get_menu_selection(self, menu):
         """
@@ -38,7 +43,7 @@ class Ui:
 
         self.print_options(menu)
         while True:
-            key = self.capture_keys(max_k=11)
+            key = self.capture_keys(max_k=len(menu)-1)
             if key == "up" or key == "down":
                 self.print_options(menu)
             elif key == "enter":

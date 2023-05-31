@@ -10,8 +10,8 @@ class DataStore:
         self.rooms: Dict[str, Dict[str, Union[int, str, list]]] = {}
         self.items: Dict[str, Dict[str, Union[str, int]]] = {}
         self.item_positions: Dict[str, Dict[str, int]] = {}
-
-        self.data_import()
+        self.player: Dict[str, Union[list, str, int, tuple]] = {}
+        self.current_loaded_file: list[str] = []
 
     # This initialises all the sample rooms.
     def data_import(self):
@@ -31,32 +31,52 @@ class DataStore:
                                      hints="")
 
         # This adds the sample items to the data store.
-        self.items['Knife'] = dict(price=12, desc="Pointy staby thing...")
+        self.items['Knife'] = dict(price=12, desc="Pointy stab thing...")
         self.items['Money'] = dict(price=-1, desc="Green goodness, that fuels your purchasing adventures.")
 
         # This makes sure that every room has an instance of item positions, even if it has no items.
         for room in self.rooms:
             self.item_positions[room] = {}
 
-    # This saves the current rooms, items, and item positions.
-    def save_to_file(self):
-        joined_dict = {"rooms": self.rooms, "items": self.items, "item_pos": self.item_positions}
-        json = dumps(joined_dict, indent=2)
-        time = datetime.now()
-        with open(f"{time.date()}-{time.hour}.{time.minute}-room.json", 'w') as file:
+        self.current_loaded_file.append(self.save_room_to_file())
+
+    def create_player(self, name):
+        self.player = dict(name=name, pos=(0, 0), items=[], money=0)
+        self.save_player_to_file()
+
+    def save_player_to_file(self):
+        json = dumps(self.player, indent=2)
+        with open(f"{self.current_loaded_file[0]}_player.json", 'w') as file:
             file.write(json)
         return
 
+    # This saves the current rooms, items, and item positions.
+    def save_room_to_file(self):
+        joined_dict = {"rooms": self.rooms, "items": self.items,
+                       "item_pos": self.item_positions}
+        json = dumps(joined_dict, indent=2)
+        filename = f"{datetime.now().date()}-{datetime.now().hour}.{datetime.now().minute}"
+        with open(f"{filename}_room.json", 'w') as file:
+            file.write(json)
+        return filename
+
     @staticmethod
     def retrieve_local_rooms():
-        return glob("*-room.json")
-    @staticmethod
-    def retrieve_local_players():
-        return glob("*-player.json")
+        return glob("*_room.json")
 
-    def replace_data(self, chosen_file):
+    def retrieve_local_players(self):
+        return glob(f"{self.current_loaded_file[0]}_player.json")
+
+    def replace_room_data(self, chosen_file: str):
+        head, sep, tail = chosen_file.partition('_')
+        self.current_loaded_file.append(str(head))
         with open(chosen_file, 'r') as file:
             data = load(file)
             self.rooms = data['rooms']
             self.items = data['items']
             self.item_positions = data['item_pos']
+
+    def replace_player_data(self, file):
+        with open(file, 'r') as file:
+            data = load(file)
+            self.player = data

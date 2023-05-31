@@ -20,13 +20,18 @@ def main(restart=False):
             if chosen_file == -1:
                 main(True)
             else:
-                data_store.replace_data(chosen_file)
+                data_store.replace_room_data(chosen_file)
         case 1:
             data_store.data_import()
         case 2:
             sys.exit(-1)
 
     user_input = ui.check_player_data(data_store.retrieve_local_players())
+
+    if user_input[0] == "New":
+        data_store.create_player(user_input[1])
+    else:
+        data_store.replace_player_data(user_input[1])
 
 
 if __name__ == "__main__":
