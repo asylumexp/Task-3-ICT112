@@ -32,7 +32,8 @@ class Ui:
         players.append("Continue as new player")
         self.get_menu_selection(players)
         if self.selection == len(players) - 1:
-            return ["New", input("What would you like to have your character's name to be?\n")]
+            name = input("What would you like to have your character's name to be?\n")
+            return ["New", name]
         else:
             return ["", players[self.selection]]
 
@@ -55,6 +56,7 @@ class Ui:
         self.print_text("Lobby", Colours.WARNING)
 
     def wait_for_input(self):
+        self.flush_input()
         sleep(.5)
         input(f"{Colours.BLUE}Press Enter to Continue.{Colours.END}\n")
         self.clear_screen()
@@ -142,6 +144,15 @@ class Ui:
                         self.selection += 1
                         key = "down"
                         return key
+
+    @staticmethod
+    def flush_input():
+        if sys.platform == "win32":
+            while msvcrt.kbhit():
+                msvcrt.getch()
+        else:
+            # Unix/Linux
+            termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
     @staticmethod
     def getch(char_width=1):
