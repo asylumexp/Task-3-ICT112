@@ -28,10 +28,16 @@ def main(restart=False):
 
     user_input = ui.check_player_data(data_store.retrieve_local_players())
 
-    if user_input[0] == "New":
-        data_store.create_player(user_input[1])
+    if user_input[0] == 'New':
+        data_store.create_player(user_input[1].strip())
     else:
-        data_store.replace_player_data(user_input[1])
+        data_store.replace_player_data(user_input[1].strip())
+
+    game()
+
+
+def game():
+    ui.start_game(data_store.player["name"])
 
 
 if __name__ == "__main__":
