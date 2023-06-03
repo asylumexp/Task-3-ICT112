@@ -1,6 +1,7 @@
 import sys
 import os
 from time import sleep
+from random import randint
 
 if sys.platform == "win32":
     import msvcrt
@@ -13,29 +14,39 @@ class Ui:
     def __init__(self):
         self.selection = 0
         self.welcome = """WELCOME"""
+        self.available_actions = []
 
     def show_menu(self):
-        self.get_menu_selection(["Import rooms from file", "Import sample rooms", "Quit"])
-        return self.selection
+        selection = self.get_menu_selection(["Import rooms from file", "Import sample rooms", "Quit"], "WELCOME")
+        return selection
+
+    @staticmethod
+    def bad_action(action: str):
+        print(f"It appears that the {action} inputted was not valid, please try again.")
+
+    def wait_for_input(self):
+        self.flush_input()
+        sleep(.5)
+        input(f"{Colours.BLUE}Press Enter to Continue.{Colours.END}\n")
+        self.clear_screen()
 
     def import_file(self, files: list):
         files.append("Return to main menu")
-        self.get_menu_selection(files)
+        selection = self.get_menu_selection(files, "WELCOME")
 
-        if self.selection == len(files) - 1:
+        if selection == len(files) - 1:
             return -1
         else:
-            return files[self.selection]
+            return files[selection]
 
     def check_player_data(self, players):
-        self.selection = 0
         players.append("Continue as new player")
-        self.get_menu_selection(players)
-        if self.selection == len(players) - 1:
+        selection = self.get_menu_selection(players, "WELCOME")
+        if selection == len(players) - 1:
             name = input("What would you like to have your character's name to be?\n")
             return ["New", name]
         else:
-            return ["", players[self.selection]]
+            return ["", players[selection]]
 
     def start_game(self, player_name: str):
         self.load()
@@ -53,15 +64,83 @@ class Ui:
         self.print_text("You: W- Who's there!?", Colours.CYAN)
         self.print_text("You look around, the room's surprisingly empty", Colours.UNDERLINE, False)
         self.print_text("You notice words on the wall...", Colours.UNDERLINE, False)
-        self.print_text("Lobby", Colours.WARNING)
+        self.print_text("Lobby", Colours.YELLOW)
 
-    def wait_for_input(self):
-        self.flush_input()
-        sleep(.5)
-        input(f"{Colours.BLUE}Press Enter to Continue.{Colours.END}\n")
-        self.clear_screen()
+    def display_actions(self, rooms, items, holding):
+        display_actions = ["Move"]
+        if items:
+            display_actions.append("Pickup")
+        if holding:
+            display_actions.append("Drop")
+        display_actions.append("Save")
 
-    def print_text(self, text, colour="", end=True):
+        print(f"\n{Colours.HEADER}Available Actions:{Colours.END}")
+        selection = self.get_menu_selection(display_actions, "Available Actions:")
+
+        return display_actions[selection]
+
+    def action(self, action, rooms: dict, items, holding):
+        if action == "Move":
+            text = ["To your:", ""]
+            actions = []
+            for direction in rooms:
+                if rooms[direction]:
+                    text.append(f"    {direction} you can see the {rooms[direction]}")
+                    actions.append(direction)
+
+            text.append("")
+            text.append("Where would you like to move to?")
+            selection = self.get_menu_selection(actions, text)
+
+            self.clear_screen()
+            print(f"Moving to the {rooms[actions[selection]]}.")
+            sleep(1)
+
+            return rooms[actions[selection]]
+        elif action == "Pickup":
+            text = ["You can see:", ""]
+            item_display = []
+            for item in items:
+                text.append(f"    {item[0]}: {Colours.UNDERLINE}{item[1]['desc']}")
+                item_display.append(item[0])
+            text.append("")
+            text.append("Which would you like to pickup?")
+
+            selection = self.get_menu_selection(item_display, text)
+
+            return item_display[selection]
+        elif action == "Drop":
+            text = ["You are holding:", ""]
+            item_display = []
+            for item in holding:
+                text.append(f"    {item[0]}: {Colours.UNDERLINE}{item[1]['desc']}")
+                item_display.append(item[0])
+            text.append("")
+            text.append("Which would you like to drop?")
+
+            selection_item = self.get_menu_selection(item_display, text)
+
+            confirmation_item = self.get_menu_selection(["Yes", "No"], [f"Dropping the {item_display[selection_item]} "
+                                                                        f"will only return a portion of it's "
+                                                                        f"${items[selection_item][1]['price']} worth",
+                                                                        "Are you sure you want to continue?"])
+            if confirmation_item == 0:
+                discount = randint(60, 95)
+                money_discount = items[selection_item][1]['price'] - (items[selection_item][1]['price'] * discount/100)
+                print(f"\x1b[1;130;44m You got {discount}% of the value back. \x1b[0m")
+                print(f"\x1b[1;130;44m You successfully received "
+                      f"${round(items[selection_item][1]['price'] - money_discount, 2)}. \x1b[0m")
+                print(f"\x1b[1;130;44m Returning to menu. \x1b[0m")
+                sleep(1)
+                return [selection_item, round(items[selection_item][1]['price'] - money_discount, 2)]
+            else:
+                print("Returning to menu")
+                return -1
+        elif "Save":
+            print(f"{Colours.HEADER}Saving and exiting{Colours.END}")
+            return
+
+    def print_text(self, text: str, colour="", end=True):
         sleep(.5)
 
         if colour:
@@ -69,29 +148,31 @@ class Ui:
 
         for character in text:
             print(character, end="", flush=True)
-            sleep(2.5/len(text))
+            sleep(2.5 / len(text))  # Effectively makes any input take 2.5 seconds to print
 
         print(Colours.END)
 
         if end:
             self.wait_for_input()
 
-    def get_menu_selection(self, menu):
+    def get_menu_selection(self, menu, text):
         """
             Description:
                 Uses self.captureKeys to get the pressed key and make subsequent changes. If pressed key is enter 
                 then it returns to the main function so that the menu can change what is shown.
         """
 
-        self.print_options(menu)
+        self.print_options(menu, text)
         while True:
             key = self.capture_keys(max_k=len(menu) - 1)
             if key == "up" or key == "down":
-                self.print_options(menu)
+                self.print_options(menu, text)
             elif key == "enter":
-                return
+                selection = self.selection
+                self.selection = 0
+                return selection
 
-    def print_options(self, menu: list):
+    def print_options(self, menu: list, text: str | list):
         """
             Description:
                 Prints all the main menu options,
@@ -99,7 +180,14 @@ class Ui:
         """
 
         self.clear_screen()
-        print('\x1b[1;130;44m', self.welcome, '\x1b[0m')
+        if isinstance(text, str):
+            print('\x1b[1;130;44m', text, '\x1b[0m')
+        else:
+            for string in text:
+                if string:
+                    print('\x1b[1;130;44m', string, '\x1b[0m')
+                else:
+                    print("")
 
         # * Print options on screen
         for option in range(len(menu)):
@@ -115,10 +203,11 @@ class Ui:
             Description:
                 Clears screen, with considerations for *nix and Windows operating systems different commands.
         """
-        if os.name == 'posix':
-            os.system('clear')
-        else:
-            os.system('cls')
+        pass
+        # if os.name == 'posix':
+        #     os.system('clear')
+        # else:
+        #     os.system('cls')
 
     def capture_keys(self, max_k):
         while True:
@@ -194,7 +283,7 @@ class Colours:
     BLUE = '\033[94m'
     CYAN = '\033[96m'
     GREEN = '\033[92m'
-    WARNING = '\033[93m'
+    YELLOW = '\033[93m'
     FAIL = '\033[91m'
     END = '\033[0m'
     BOLD = '\033[1m'

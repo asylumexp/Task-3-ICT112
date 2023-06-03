@@ -37,7 +37,27 @@ def main(restart=False):
 
 
 def game():
-    ui.start_game(data_store.player["name"])
+    running = True
+    while running:
+        # ui.start_game(data_store.player["name"])
+        rooms, items, holding = data_store.player_available_actions()
+
+        user_action = ui.display_actions(rooms, items, holding)
+
+        result = ui.action(user_action, rooms, items, holding)
+
+        match user_action:
+            case "Move":
+                print(result)
+            case "Pickup":
+                print(result)
+            case "Drop":
+                print(result)
+            case "Save":
+                data_store.save_room_to_file()
+                data_store.save_player_to_file()
+                sys.exit(0)
+        running = False
 
 
 if __name__ == "__main__":
