@@ -12,6 +12,7 @@ class DataStore:
         self.item_positions: Dict[str, List[List[Dict[str, Union[str, int]], int]]] = {}
         self.player: Dict[str, Union[str, tuple, list, int]] = {}
         self.current_loaded_file: list[str] = []
+        self.current_room = ""
 
     # This initialises all the sample rooms.
     def data_import(self):
@@ -55,7 +56,6 @@ class DataStore:
         available_rooms = dict(North="", East="", South="", West="")
         pos_x = self.player["pos"][0]
         pos_y = self.player["pos"][1]
-        current_room = ""
 
         for room in self.rooms:
             room_x = self.rooms[room]["posX"]
@@ -70,9 +70,21 @@ class DataStore:
             elif room_y == pos_y - 1 and pos_x == room_x:
                 available_rooms["South"] = room
             elif room_y == pos_y and pos_x == room_x:
-                current_room = room
+                self.current_room = room
 
-        return available_rooms, self.item_positions[current_room], self.player["items"]
+        return available_rooms, self.item_positions[self.current_room], self.player["items"]
+
+    def move(self, room):
+        room_x = self.rooms[room]["posX"]
+        room_y = self.rooms[room]["posY"]
+        self.player['pos'] = (room_x, room_y)
+
+    def drop(self, item: list):
+        del self.player['items'][item[0]]
+
+    def pickup(self, item: int):
+        self.player['items'].append(self.item_positions[self.current_room][item])
+        del self.item_positions[self.current_room][item]
 
     def save_player_to_file(self):
         json = dumps(self.player, indent=2)

@@ -97,6 +97,7 @@ class Ui:
             sleep(1)
 
             return rooms[actions[selection]]
+
         elif action == "Pickup":
             text = ["You can see:", ""]
             item_display = []
@@ -108,7 +109,13 @@ class Ui:
 
             selection = self.get_menu_selection(item_display, text)
 
-            return item_display[selection]
+            if len(holding) == 3:
+                print("You cannot pick this up as you have too many items.")
+                print("Returning to menu.")
+                return -1
+            else:
+                return selection
+
         elif action == "Drop":
             text = ["You are holding:", ""]
             item_display = []
@@ -122,17 +129,17 @@ class Ui:
 
             confirmation_item = self.get_menu_selection(["Yes", "No"], [f"Dropping the {item_display[selection_item]} "
                                                                         f"will only return a portion of it's "
-                                                                        f"${items[selection_item][1]['price']} worth",
+                                                                        f"${holding[selection_item][1]['price']} worth",
                                                                         "Are you sure you want to continue?"])
             if confirmation_item == 0:
                 discount = randint(60, 95)
-                money_discount = items[selection_item][1]['price'] - (items[selection_item][1]['price'] * discount/100)
+                money_discount = holding[selection_item][1]['price'] - (holding[selection_item][1]['price'] * discount/100)
                 print(f"\x1b[1;130;44m You got {discount}% of the value back. \x1b[0m")
                 print(f"\x1b[1;130;44m You successfully received "
-                      f"${round(items[selection_item][1]['price'] - money_discount, 2)}. \x1b[0m")
+                      f"${round(holding[selection_item][1]['price'] - money_discount, 2)}. \x1b[0m")
                 print(f"\x1b[1;130;44m Returning to menu. \x1b[0m")
                 sleep(1)
-                return [selection_item, round(items[selection_item][1]['price'] - money_discount, 2)]
+                return [selection_item, round(holding[selection_item][1]['price'] - money_discount, 2)]
             else:
                 print("Returning to menu")
                 return -1
@@ -161,7 +168,7 @@ class Ui:
                 Uses self.captureKeys to get the pressed key and make subsequent changes. If pressed key is enter 
                 then it returns to the main function so that the menu can change what is shown.
         """
-
+        self.flush_input()
         self.print_options(menu, text)
         while True:
             key = self.capture_keys(max_k=len(menu) - 1)
@@ -233,6 +240,8 @@ class Ui:
                         self.selection += 1
                         key = "down"
                         return key
+                case 27:
+                    sys.exit()
 
     @staticmethod
     def flush_input():

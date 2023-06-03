@@ -45,19 +45,18 @@ def game():
         user_action = ui.display_actions(rooms, items, holding)
 
         result = ui.action(user_action, rooms, items, holding)
-
-        match user_action:
-            case "Move":
-                print(result)
-            case "Pickup":
-                print(result)
-            case "Drop":
-                print(result)
-            case "Save":
-                data_store.save_room_to_file()
-                data_store.save_player_to_file()
-                sys.exit(0)
-        running = False
+        if result != -1:
+            match user_action:
+                case "Move":
+                    data_store.move(result)
+                case "Pickup":
+                    data_store.pickup(result)
+                case "Drop":
+                    data_store.drop(result)
+                case "Save":
+                    data_store.save_room_to_file()
+                    data_store.save_player_to_file()
+                    running = False
 
 
 if __name__ == "__main__":
