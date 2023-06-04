@@ -67,19 +67,18 @@ class Ui:
         self.print_text("Lobby", Colours.YELLOW)
 
     def display_actions(self, rooms, items, holding):
-        display_actions = ["Move"]
+        display_actions = ["Move", "Inventory"]
         if items:
             display_actions.append("Pickup")
         if holding:
             display_actions.append("Drop")
         display_actions.append("Save")
 
-        print(f"\n{Colours.HEADER}Available Actions:{Colours.END}")
         selection = self.get_menu_selection(display_actions, "Available Actions:")
 
         return display_actions[selection]
 
-    def action(self, action, rooms: dict, items, holding):
+    def action(self, action, rooms: dict, items: list, holding: list, money: int):
         if action == "Move":
             text = ["To your:", ""]
             actions = []
@@ -97,6 +96,27 @@ class Ui:
             sleep(1)
 
             return rooms[actions[selection]]
+
+        elif action == "Inventory":
+            text = [f"You currently have ${money}.", "You are currently holding:"]
+            item_display = ['Shop']
+
+            for item in holding:
+                text.append(f"    {item[0]}: {Colours.UNDERLINE}{item[1]['desc']}")
+                item_display.append(f"Use the {item[0]}")
+
+            text.append(f"    What would you like to do?")
+            item_display.append(f"Return to menu")
+
+            selection = self.get_menu_selection(item_display, text)
+
+            match item_display[selection]:
+                case 'Shop':
+                    return ['Shop']
+                case 'Return to menu':
+                    return [""]
+                case _:
+                    return ['Action', selection - 1]
 
         elif action == "Pickup":
             text = ["You can see:", ""]
@@ -127,25 +147,53 @@ class Ui:
 
             selection_item = self.get_menu_selection(item_display, text)
 
-            confirmation_item = self.get_menu_selection(["Yes", "No"], [f"Dropping the {item_display[selection_item]} "
-                                                                        f"will only return a portion of it's "
-                                                                        f"${holding[selection_item][1]['price']} worth",
+            confirmation_item = self.get_menu_selection(["Yes", "No"], ["Dropping the {} "
+                                                                        "will only return a portion of it's "
+                                                                        "${:.2f} worth"
+                                                        .format(item_display[selection_item],
+                                                                holding[selection_item][1]['price']),
                                                                         "Are you sure you want to continue?"])
             if confirmation_item == 0:
                 discount = randint(60, 95)
-                money_discount = holding[selection_item][1]['price'] - (holding[selection_item][1]['price'] * discount/100)
+                mo_discount = holding[selection_item][1]['price'] - (
+                            holding[selection_item][1]['price'] * discount / 100)
                 print(f"\x1b[1;130;44m You got {discount}% of the value back. \x1b[0m")
                 print(f"\x1b[1;130;44m You successfully received "
-                      f"${round(holding[selection_item][1]['price'] - money_discount, 2)}. \x1b[0m")
+                      "${:.2f}\x1b[0m".format(round(holding[selection_item][1]['price'] - mo_discount, 2)))
                 print(f"\x1b[1;130;44m Returning to menu. \x1b[0m")
-                sleep(1)
-                return [selection_item, round(holding[selection_item][1]['price'] - money_discount, 2)]
+                sleep(2.5)
+                return [selection_item, round(holding[selection_item][1]['price'] - mo_discount, 2)]
             else:
                 print("Returning to menu")
                 return -1
         elif "Save":
             print(f"{Colours.HEADER}Saving and exiting{Colours.END}")
             return
+
+    def shop(self, items, prices, money, holding):
+        text = "What would you like to buy?"
+        item_display = ['Return to menu']
+        for i in range(len(items)):
+            if prices[i] != -1:
+                item_display.append("{}: ${:.2f}".format(items[i], prices[i]))
+
+        selection_item = self.get_menu_selection(item_display, text)
+
+        if selection_item == 0:
+            pass
+        elif prices[selection_item - 1] > money:
+            print("You do not have the required funds to purchase this.")
+        elif holding >= 3:
+            print("You cannot purchase this as you are holding too many items.")
+        else:
+            print("Successfully purchased. You now have ${:.2f}".format(money - prices[selection_item - 1]))
+            print("Returning to menu...")
+            sleep(2.5)
+            return [True, selection_item, items[selection_item - 1], money - prices[selection_item - 1]]
+
+        print("Returning to menu...")
+        sleep(2.5)
+        return [False, "", -1]
 
     def print_text(self, text: str, colour="", end=True):
         sleep(.5)

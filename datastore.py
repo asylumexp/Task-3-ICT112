@@ -72,15 +72,32 @@ class DataStore:
             elif room_y == pos_y and pos_x == room_x:
                 self.current_room = room
 
-        return available_rooms, self.item_positions[self.current_room], self.player["items"]
+        return available_rooms, self.item_positions[self.current_room], self.player["items"], self.player['money']
 
     def move(self, room):
         room_x = self.rooms[room]["posX"]
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
 
+    def shop(self):
+        items = []
+        prices = []
+        for item in self.items:
+            items.append(item)
+            prices.append(self.items[item]['price'])
+
+        return items, prices, self.player['money']
+
+    def purchased(self, results):
+        if results[0]:
+            print(self.player['items'][results[1]])
+            self.player['items'].append([results[2], self.items[results[2]]])
+            self.player['money'] = results[3]
+            print(self.player['items'], self.player['money'])
+
     def drop(self, item: list):
         del self.player['items'][item[0]]
+        self.player['money'] += item[1]
 
     def pickup(self, item: int):
         self.player['items'].append(self.item_positions[self.current_room][item])
@@ -90,7 +107,6 @@ class DataStore:
         json = dumps(self.player, indent=2)
         with open(f"{self.current_loaded_file[0]}_player.json", 'w') as file:
             file.write(json)
-        return
 
     # This saves the current rooms, items, and item positions.
     def save_room_to_file(self):

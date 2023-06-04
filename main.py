@@ -40,15 +40,23 @@ def game():
     running = True
     while running:
         # ui.start_game(data_store.player["name"])
-        rooms, items, holding = data_store.player_available_actions()
+        rooms, items, holding, money = data_store.player_available_actions()
 
         user_action = ui.display_actions(rooms, items, holding)
 
-        result = ui.action(user_action, rooms, items, holding)
+        print(user_action)
+
+        result = ui.action(user_action, rooms, items, holding, money)
         if result != -1:
             match user_action:
                 case "Move":
                     data_store.move(result)
+                case "Inventory":
+                    if result[0] == "Shop":
+                        items, prices, money = data_store.shop()
+                        data_store.purchased(ui.shop(items, prices, money, len(holding)))
+                    elif result[0] == "Action":
+                        ui.use_item(data_store.used_item())
                 case "Pickup":
                     data_store.pickup(result)
                 case "Drop":
