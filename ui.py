@@ -13,7 +13,6 @@ else:
 class Ui:
     def __init__(self):
         self.selection = 0
-        self.welcome = """WELCOME"""
         self.available_actions = []
 
     def show_menu(self):

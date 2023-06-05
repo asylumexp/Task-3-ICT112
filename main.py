@@ -57,7 +57,7 @@ def game():
                         items, prices, money = data_store.shop()
                         data_store.purchased(ui.shop(items, prices, money, len(holding)))
                     elif result[0] == "Action":
-                        extra_text = ui.item_used(data_store.used_item(holding, result[1]))
+                        ui.item_used(data_store.used_item(holding, result[1]))
                 case "Pickup":
                     data_store.pickup(result)
                 case "Drop":

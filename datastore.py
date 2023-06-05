@@ -81,6 +81,7 @@ class DataStore:
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
         for item in range(len(self.player['items'])):
+            print(self.player['items'][item][2])
             if self.player['items'][item][2] == 1:
                 self.extra_text.append(f"After using the {self.player['items'][item][0]}, it has now broken.")
                 self.types_used.remove(self.player['items'][item][1]["use"])  # Despite what PyCharm says, this is right
@@ -114,14 +115,14 @@ class DataStore:
         del self.item_positions[self.current_room][item]
 
     def used_item(self, items, selected):
-        used_item = self.items[items[selected][0]]
-        self.player['items'][selected][2] += 1
         self.types_used.append(self.player['items'][selected][1]["use"])  # Despite what PyCharm says, ["use"] is right.
 
-        match used_item['use']:
+        match self.items[items[selected][0]]['use']:
             case 'Light':
+                self.player['items'][selected][2] += 1
                 return [f"You switch on the {items[selected][0]}, lighting up the room.", items[selected][0]]
             case 'Attack':
+                self.player['items'][selected][2] += 1
                 return [f"You arm yourself with the {items[selected][0]}."]
             case _:
                 return [f"You cannot use this."]
