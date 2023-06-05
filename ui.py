@@ -148,7 +148,8 @@ class Ui:
 
             selection_item = self.get_menu_selection(item_display, text)
 
-            if holding[selection_item][2] <= 1:
+            if holding[selection_item][2] >= 1:
+                self.clear_screen()
                 print("\n\x1b[1;130;44m Since this has already been used, it cannot be dropped. \x1b[0m")
                 confirmation_item = -1
 
@@ -189,6 +190,7 @@ class Ui:
 
         selection_item = self.get_menu_selection(item_display, text)
 
+        self.clear_screen()
         if selection_item == 0:
             pass
         elif prices[selection_item - 1] > money:
@@ -221,6 +223,7 @@ class Ui:
             self.wait_for_input()
 
     def item_used(self, show_to_user):
+        self.clear_screen()
         self.print_text(show_to_user[0])
 
     def get_menu_selection(self, menu, text):
@@ -271,11 +274,10 @@ class Ui:
             Description:
                 Clears screen, with considerations for *nix and Windows operating systems different commands.
         """
-        pass
-        # if os.name == 'posix':
-        #     os.system('clear')
-        # else:
-        #     os.system('cls')
+        if os.name == 'posix':
+            os.system('clear')
+        else:
+            os.system('cls')
 
     def capture_keys(self, max_k):
         while True:
