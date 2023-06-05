@@ -42,12 +42,13 @@ def game():
         # ui.start_game(data_store.player["name"])
         rooms, items, holding, money = data_store.player_available_actions()
 
-        user_action = ui.display_actions(rooms, items, holding)
-
-        print(user_action)
+        user_action = ui.display_actions(rooms, items, holding, data_store.extra_text)
 
         result = ui.action(user_action, rooms, items, holding, money)
+        data_store.extra_text.remove("Available Actions:")
+
         if result != -1:
+            data_store.extra_text = []
             match user_action:
                 case "Move":
                     data_store.move(result)
@@ -56,7 +57,7 @@ def game():
                         items, prices, money = data_store.shop()
                         data_store.purchased(ui.shop(items, prices, money, len(holding)))
                     elif result[0] == "Action":
-                        ui.use_item(data_store.used_item())
+                        extra_text = ui.item_used(data_store.used_item(holding, result[1]))
                 case "Pickup":
                     data_store.pickup(result)
                 case "Drop":

@@ -66,7 +66,7 @@ class Ui:
         self.print_text("You notice words on the wall...", Colours.UNDERLINE, False)
         self.print_text("Lobby", Colours.YELLOW)
 
-    def display_actions(self, rooms, items, holding):
+    def display_actions(self, rooms, items, holding, extra_text: list):
         display_actions = ["Move", "Inventory"]
         if items:
             display_actions.append("Pickup")
@@ -74,7 +74,9 @@ class Ui:
             display_actions.append("Drop")
         display_actions.append("Save")
 
-        selection = self.get_menu_selection(display_actions, "Available Actions:")
+        extra_text.append("Available Actions:")
+
+        selection = self.get_menu_selection(display_actions, extra_text)
 
         return display_actions[selection]
 
@@ -147,12 +149,21 @@ class Ui:
 
             selection_item = self.get_menu_selection(item_display, text)
 
-            confirmation_item = self.get_menu_selection(["Yes", "No"], ["Dropping the {} "
-                                                                        "will only return a portion of it's "
-                                                                        "${:.2f} worth"
-                                                        .format(item_display[selection_item],
-                                                                holding[selection_item][1]['price']),
-                                                                        "Are you sure you want to continue?"])
+            if holding[selection_item][2] <= 1:
+                print("\n\x1b[1;130;44m Since this has already been used, it cannot be dropped. \x1b[0m")
+                confirmation_item = -1
+
+            elif holding[selection_item][1]['use'] != 'None':
+                confirmation_item = self.get_menu_selection(["Yes", "No"], ["Dropping the {} "
+                                                                            "will only return a portion of it's "
+                                                                            "${:.2f} worth"
+                                                            .format(item_display[selection_item],
+                                                                    holding[selection_item][1]['price']),
+                                                                            "Are you sure you want to continue?"])
+            else:
+                self.print_text("\n\x1b[1;130;44m You cannot drop this. \x1b[0m")
+                confirmation_item = -1
+
             if confirmation_item == 0:
                 discount = randint(60, 95)
                 mo_discount = holding[selection_item][1]['price'] - (
@@ -163,9 +174,9 @@ class Ui:
                 print(f"\x1b[1;130;44m Returning to menu. \x1b[0m")
                 sleep(2.5)
                 return [selection_item, round(holding[selection_item][1]['price'] - mo_discount, 2)]
-            else:
-                print("Returning to menu")
-                return -1
+            print(f"\x1b[1;130;44m Returning to menu. \x1b[0m")
+            sleep(2.5)
+            return -1
         elif "Save":
             print(f"{Colours.HEADER}Saving and exiting{Colours.END}")
             return
@@ -209,6 +220,9 @@ class Ui:
 
         if end:
             self.wait_for_input()
+
+    def item_used(self, show_to_user):
+        self.print_text(show_to_user[0])
 
     def get_menu_selection(self, menu, text):
         """

@@ -12,7 +12,9 @@ class DataStore:
         self.item_positions: Dict[str, List[List[Dict[str, Union[str, int]], int]]] = {}
         self.player: Dict[str, Union[str, tuple, list, int]] = {}
         self.current_loaded_file: list[str] = []
-        self.current_room = ""
+        self.current_room: str = ""
+        self.extra_text: list = []
+        self.types_used = []
 
     # This initialises all the sample rooms.
     def data_import(self):
@@ -36,7 +38,7 @@ class DataStore:
         self.items['Flashlight'] = dict(price=34, desc="Source of light to guide you.", use="Light")
         self.items['Wallet'] = dict(price=-1,
                                     desc="The holder of the green goodness that fuels your purchasing adventures.",
-                                    use="Money")
+                                    use="None")
 
         # This makes sure that every room has an instance of item positions, even if it has no items.
         for room in self.rooms:
@@ -78,6 +80,11 @@ class DataStore:
         room_x = self.rooms[room]["posX"]
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
+        for item in range(len(self.player['items'])):
+            if self.player['items'][item][2] == 1:
+                self.extra_text.append(f"After using the {self.player['items'][item][0]}, it has now broken.")
+                self.types_used.remove(self.player['items'][item][1]["use"])  # Despite what PyCharm says, this is right
+                del self.player['items'][item]
 
     def shop(self):
         items = []
@@ -100,8 +107,24 @@ class DataStore:
         self.player['money'] += item[1]
 
     def pickup(self, item: int):
-        self.player['items'].append(self.item_positions[self.current_room][item])
+        item_picked = self.item_positions[self.current_room][item]
+        # noinspection PyTypeChecker
+        item_picked[2] = 0
+        self.player['items'].append(item_picked)
         del self.item_positions[self.current_room][item]
+
+    def used_item(self, items, selected):
+        used_item = self.items[items[selected][0]]
+        self.player['items'][selected][2] += 1
+        self.types_used.append(self.player['items'][selected][1]["use"])  # Despite what PyCharm says, ["use"] is right.
+
+        match used_item['use']:
+            case 'Light':
+                return [f"You switch on the {items[selected][0]}, lighting up the room.", items[selected][0]]
+            case 'Attack':
+                return [f"You arm yourself with the {items[selected][0]}."]
+            case _:
+                return [f"You cannot use this."]
 
     def save_player_to_file(self):
         json = dumps(self.player, indent=2)
