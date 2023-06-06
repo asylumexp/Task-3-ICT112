@@ -15,6 +15,7 @@ class DataStore:
         self.current_room: str = ""
         self.extra_text: list = []
         self.types_used = []
+        self.objectives_ran = []
 
     # This initialises all the sample rooms.
     def data_import(self):
@@ -26,16 +27,19 @@ class DataStore:
                                        instructions="Instructions", hints="")
         self.rooms['En suite'] = dict(posX=-2, posY=0, desc="The draft of the open window sends chills down your "
                                                             "spine..", instructions="Instructions", hints="")
-        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="It's quite dark, perhaps some light may be useful..",
-                                      instructions="Instructions", hints="")
+        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="There appears to be a dark figure in here",
+                                      instructions="It's quite dark, perhaps some light may be useful..",
+                                      hints="Something to defend yourself might be useful here.")
         self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="If you venture down further, who knows what you could find",
-                                     instructions="Instructions", hints="")
+                                     instructions="Some light may be useful here...", hints="")
         self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="KITCHEN", instructions="Instructions",
                                      hints="")
 
         # This adds the sample items to the data store.
         self.items['Knife'] = dict(price=12, desc="Pointy stab thing...", use="Attack")
         self.items['Flashlight'] = dict(price=34, desc="Source of light to guide you.", use="Light")
+        self.items['Key'] = dict(price=34, desc="A mysterious key, found in the basement. "
+                                                "I would keep a good hold on it.", use="Key")
         self.items['Wallet'] = dict(price=-1,
                                     desc="The holder of the green goodness that fuels your purchasing adventures.",
                                     use="None")
@@ -74,6 +78,14 @@ class DataStore:
             elif room_y == pos_y and pos_x == room_x:
                 self.current_room = room
 
+        print(self.current_room)
+        if self.current_room == "Basement":
+            self.basement()
+
+        self.extra_text.insert(0, '')
+        self.extra_text.insert(0, self.rooms[self.current_room]['desc'])
+        self.extra_text.insert(0, self.current_room)
+
         return available_rooms, self.item_positions[self.current_room], self.player["items"], self.player['money']
 
     def move(self, room):
@@ -82,10 +94,33 @@ class DataStore:
         self.player['pos'] = (room_x, room_y)
         for item in range(len(self.player['items'])):
             print(self.player['items'][item][2])
-            if self.player['items'][item][2] == 1:
+            if self.player['items'][item][2] >= 2:
                 self.extra_text.append(f"After using the {self.player['items'][item][0]}, it has now broken.")
                 self.types_used.remove(self.player['items'][item][1]["use"])  # Despite what PyCharm says, this is right
                 del self.player['items'][item]
+
+    def basement(self):
+        if "Basement Figure" not in self.objectives_ran:
+            for i in range(len(self.player['items'])):
+                if self.player['items'][i][1]['use'] == "Attack":
+                    if self.player['items'][i][2] > 0:
+                        self.extra_text.append(
+                            "Seeing you armed, the dark figure ran away. It dropped some money as it ran...")
+                        self.player['money'] += 50
+                        self.extra_text.append(f"You now have ${self.player['money']}!")
+                        self.objectives_ran.append("Basement Figure")
+                        break
+            else:
+                self.extra_text.append("Upon seeing you unarmed, the dark figure stole all of your money.")
+                self.player['money'] = 0
+                self.extra_text.append("You now have $0")
+        if "Basement Key" not in self.objectives_ran:
+            for i in range(len(self.player['items'])):
+                if self.player['items'][i][1]['use'] == "Light":
+                    if self.player['items'][i][2] > 0:
+                        self.extra_text.append(
+                            "With the light, you can see a key in the room, perhaps it will be useful..")
+                        self.item_positions['Basement'].append(['Key', self.items['Key'], 1])
 
     def shop(self):
         items = []
@@ -167,5 +202,3 @@ class DataStore:
         with open(file, 'r') as file:
             data = load(file)
             self.player = data
-
-
