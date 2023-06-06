@@ -7,6 +7,7 @@ from glob import glob
 class DataStore:
     def __init__(self):
         # This creates the instances
+        self.end_check = None
         self.rooms: Dict[str, Dict[str, Union[int, str, list]]] = {}
         self.items: Dict[str, Dict[str, Union[str, int]]] = {}
         self.item_positions: Dict[str, List[List[Dict[str, Union[str, int]], int]]] = {}
@@ -20,25 +21,24 @@ class DataStore:
     # This initialises all the sample rooms.
     def data_import(self):
         # This adds the sample rooms to the data store.
-        self.rooms['Lobby'] = dict(posX=0, posY=0, desc="The beginning room..", instructions="Instructions", hints="")
+        self.rooms['Lobby'] = dict(posX=0, posY=0, desc="The beginning room..", instructions="Instructions",
+                                   visible=True)
         self.rooms['Master Bedroom'] = dict(posX=-1, posY=0, desc="The Master Bedroom", instructions="Instructions",
-                                            hints="")
+                                            visible=True)
         self.rooms['Kids room'] = dict(posX=-2, posY=0, desc="Eerily quiet for a children's room",
-                                       instructions="Instructions", hints="")
+                                       instructions="Instructions", visible=True)
         self.rooms['En suite'] = dict(posX=-2, posY=0, desc="The draft of the open window sends chills down your "
-                                                            "spine..", instructions="Instructions", hints="")
+                                                            "spine..", instructions="Instructions", visible=True)
         self.rooms['Basement'] = dict(posX=-1, posY=1, desc="There appears to be a dark figure in here",
-                                      instructions="It's quite dark, perhaps some light may be useful..",
-                                      hints="Something to defend yourself might be useful here.")
+                                      instructions="It's quite dark, perhaps some light may be useful..", visible=True)
         self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="If you venture down further, who knows what you could find",
-                                     instructions="Some light may be useful here...", hints="")
+                                     instructions="Some light may be useful here...", visible=True)
         self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="Easy to find plenty of kitchenware here.",
-                                     instructions="Instructions",
-                                     hints="")
+                                     instructions="Instructions", visible=True)
         self.rooms['Entrance'] = dict(posX=0, posY=-2,
                                       desc="There's a giant door with a keyhole in it, perhaps a key is needed?",
-                                      instructions="Instructions",
-                                      hints="")
+                                      instructions="Instructions", visible=True)
+        self.rooms['Outside?'] = dict(posX=0, posY=-3, desc="???", instructions="??", visible=False)
 
         # This adds the sample items to the data store.
         self.items['Knife'] = dict(price=12, desc="Pointy stab thing...", use="Attack")
@@ -72,16 +72,17 @@ class DataStore:
             room_x = self.rooms[room]["posX"]
             room_y = self.rooms[room]["posY"]
 
-            if room_x == pos_x + 1 and pos_y == room_y:
-                available_rooms["East"] = room
-            elif room_x == pos_x - 1 and pos_y == room_y:
-                available_rooms["West"] = room
-            elif room_y == pos_y + 1 and pos_x == room_x:
-                available_rooms["North"] = room
-            elif room_y == pos_y - 1 and pos_x == room_x:
-                available_rooms["South"] = room
-            elif room_y == pos_y and pos_x == room_x:
-                self.current_room = room
+            if self.rooms[room]['visible']:
+                if room_x == pos_x + 1 and pos_y == room_y:
+                    available_rooms["East"] = room
+                elif room_x == pos_x - 1 and pos_y == room_y:
+                    available_rooms["West"] = room
+                elif room_y == pos_y + 1 and pos_x == room_x:
+                    available_rooms["North"] = room
+                elif room_y == pos_y - 1 and pos_x == room_x:
+                    available_rooms["South"] = room
+                elif room_y == pos_y and pos_x == room_x:
+                    self.current_room = room
 
         print(self.current_room)
         if self.current_room == "Basement":
@@ -90,7 +91,7 @@ class DataStore:
             self.entrance()
         elif self.current_room == "Hallway":
             self.hallway()
-        elif self.current_room == "Outside":
+        elif self.current_room == "Outside?":
             self.end()
 
         self.extra_text.insert(0, '')
@@ -104,7 +105,6 @@ class DataStore:
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
         for item in range(len(self.player['items'])):
-            print(self.player['items'][item][2])
             if self.player['items'][item][2] >= 2:
                 self.extra_text.append(f"After using the {self.player['items'][item][0]}, it has now broken.")
                 self.types_used.remove(self.player['items'][item][1]["use"])  # Despite what PyCharm says, this is right
@@ -146,17 +146,14 @@ class DataStore:
     def entrance(self):
         for i in range(len(self.player['items'])):
             if self.player['items'][i][1]['use'] == "Key":
-                if self.player['items'][i][2] > 0:
-                    self.extra_text.append(
-                        "With the key at your disposal, you unlock the door in front of you, "
-                        "revealing what appears to be the outside...")
-                    self.rooms['Outside?'] = dict(posX=-3, posY=0,
-                                                  desc="???",
-                                                  instructions="??",
-                                                  hints="?")
+                self.extra_text.append(
+                    "With the key at your disposal, you unlock the door in front of you, "
+                    "revealing what appears to be the outside...")
+                self.rooms['Outside?']["visible"] = True
+
 
     def end(self):
-        return "END"
+        self.end_check = "END"
 
     def shop(self):
         items = []

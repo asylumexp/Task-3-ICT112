@@ -12,6 +12,7 @@ else:
 
 class Ui:
     def __init__(self):
+        self.end = ""
         self.selection = 0
         self.available_actions = []
 
@@ -84,6 +85,7 @@ class Ui:
             text = ["To your:", ""]
             actions = []
             for direction in rooms:
+                print(rooms)
                 if rooms[direction]:
                     text.append(f"    {direction} you can see the {rooms[direction]}")
                     actions.append(direction)

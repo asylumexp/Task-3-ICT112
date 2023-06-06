@@ -54,8 +54,11 @@ def game():
         result = ui.action(user_action, rooms, items, holding, money)
         data_store.extra_text.remove("Available Actions:")
         data_store.extra_text = []
-        if result == "END":
+
+        if data_store.end_check == "END":
+            running = False
             end()
+
         elif result != -1:
 
             match user_action:
@@ -78,6 +81,7 @@ def game():
 
 
 def end():
+    global new_player
     ui.print_text("???: It appears you were successful this time", "", False)
     ui.print_text("You: Does that mean I'm able to leave??", "", False)
     ui.print_text(f"???: Maybe next time {data_store.player['name']}")
@@ -87,9 +91,8 @@ def end():
         "William", "Mia", "James", "Isabella", "Joseph", "Charlotte", "Daniel", "Amelia"]
     name = choice(first_names)
     data_store.create_player(name)
-    ui.start_game(name)
-
-
+    new_player = True
+    game()
 
 
 if __name__ == "__main__":
