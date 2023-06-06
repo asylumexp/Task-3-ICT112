@@ -130,9 +130,11 @@ class Ui:
 
             selection = self.get_menu_selection(item_display, text)
 
+            print(len(holding))
             if len(holding) == 3:
                 print("You cannot pick this up as you have too many items.")
                 print("Returning to menu.")
+                sleep(2)
                 return -1
             else:
                 return selection

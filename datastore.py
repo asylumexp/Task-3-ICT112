@@ -27,13 +27,18 @@ class DataStore:
                                        instructions="Instructions", hints="")
         self.rooms['En suite'] = dict(posX=-2, posY=0, desc="The draft of the open window sends chills down your "
                                                             "spine..", instructions="Instructions", hints="")
-        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="There appears to be a dark figure in here",
+        self.rooms['Basement'] = dict(posX=-1, posY=1, desc="There appears to be a dark figure in here",
                                       instructions="It's quite dark, perhaps some light may be useful..",
                                       hints="Something to defend yourself might be useful here.")
         self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="If you venture down further, who knows what you could find",
                                      instructions="Some light may be useful here...", hints="")
-        self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="KITCHEN", instructions="Instructions",
+        self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="Easy to find plenty of kitchenware here.",
+                                     instructions="Instructions",
                                      hints="")
+        self.rooms['Entrance'] = dict(posX=0, posY=-2,
+                                      desc="There's a giant door with a keyhole in it, perhaps a key is needed?",
+                                      instructions="Instructions",
+                                      hints="")
 
         # This adds the sample items to the data store.
         self.items['Knife'] = dict(price=12, desc="Pointy stab thing...", use="Attack")
@@ -81,6 +86,12 @@ class DataStore:
         print(self.current_room)
         if self.current_room == "Basement":
             self.basement()
+        elif self.current_room == "Entrance":
+            self.entrance()
+        elif self.current_room == "Hallway":
+            self.hallway()
+        elif self.current_room == "Outside":
+            self.end()
 
         self.extra_text.insert(0, '')
         self.extra_text.insert(0, self.rooms[self.current_room]['desc'])
@@ -111,7 +122,8 @@ class DataStore:
                         self.objectives_ran.append("Basement Figure")
                         break
             else:
-                self.extra_text.append("Upon seeing you unarmed, the dark figure stole all of your money.")
+                self.objectives_ran.append("Basement Figure")
+                self.extra_text.append("Upon seeing you unarmed, the dark figure stole all of your money and ran off.")
                 self.player['money'] = 0
                 self.extra_text.append("You now have $0")
         if "Basement Key" not in self.objectives_ran:
@@ -121,6 +133,30 @@ class DataStore:
                         self.extra_text.append(
                             "With the light, you can see a key in the room, perhaps it will be useful..")
                         self.item_positions['Basement'].append(['Key', self.items['Key'], 1])
+                        self.objectives_ran.append("Basement Key")
+
+    def hallway(self):
+        for i in range(len(self.player['items'])):
+            if self.player['items'][i][1]['use'] == "Light":
+                if self.player['items'][i][2] > 0:
+                    self.extra_text.append(
+                        "With the light, you can see a dark figure in the basement,"
+                        " perhaps it would be wise to arm yourself beforehand..")
+
+    def entrance(self):
+        for i in range(len(self.player['items'])):
+            if self.player['items'][i][1]['use'] == "Key":
+                if self.player['items'][i][2] > 0:
+                    self.extra_text.append(
+                        "With the key at your disposal, you unlock the door in front of you, "
+                        "revealing what appears to be the outside...")
+                    self.rooms['Outside?'] = dict(posX=-3, posY=0,
+                                                  desc="???",
+                                                  instructions="??",
+                                                  hints="?")
+
+    def end(self):
+        return "END"
 
     def shop(self):
         items = []
@@ -163,6 +199,7 @@ class DataStore:
                 return [f"You cannot use this."]
 
     def save_player_to_file(self):
+        self.player['objectives'] = self.objectives_ran
         json = dumps(self.player, indent=2)
         with open(f"{self.current_loaded_file[0]}_player.json", 'w') as file:
             file.write(json)
@@ -201,4 +238,5 @@ class DataStore:
     def replace_player_data(self, file):
         with open(file, 'r') as file:
             data = load(file)
+            self.objectives_ran = data['objectives']
             self.player = data

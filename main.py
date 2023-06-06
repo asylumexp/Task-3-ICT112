@@ -1,10 +1,13 @@
 import sys
+from random import choice
 
 from datastore import DataStore
 from ui import Ui
 
 data_store = DataStore()
 ui = Ui()
+
+new_player = False
 
 
 def main(restart=False):
@@ -29,6 +32,8 @@ def main(restart=False):
     user_input = ui.check_player_data(data_store.retrieve_local_players())
 
     if user_input[0] == 'New':
+        global new_player
+        new_player = True
         data_store.create_player(user_input[1].strip())
     else:
         data_store.replace_player_data(user_input[1].strip())
@@ -37,18 +42,22 @@ def main(restart=False):
 
 
 def game():
+    global new_player
     running = True
+    if new_player:
+        ui.start_game(data_store.player["name"])
     while running:
-        # ui.start_game(data_store.player["name"])
         rooms, items, holding, money = data_store.player_available_actions()
 
         user_action = ui.display_actions(rooms, items, holding, data_store.extra_text)
 
         result = ui.action(user_action, rooms, items, holding, money)
         data_store.extra_text.remove("Available Actions:")
+        data_store.extra_text = []
+        if result == "END":
+            end()
+        elif result != -1:
 
-        if result != -1:
-            data_store.extra_text = []
             match user_action:
                 case "Move":
                     data_store.move(result)
@@ -66,6 +75,21 @@ def game():
                     data_store.save_room_to_file()
                     data_store.save_player_to_file()
                     running = False
+
+
+def end():
+    ui.print_text("???: It appears you were successful this time", "", False)
+    ui.print_text("You: Does that mean I'm able to leave??", "", False)
+    ui.print_text(f"???: Maybe next time {data_store.player['name']}")
+    data_store.data_import()
+    first_names = [
+        "John", "Emma", "Michael", "Sophia", "Robert", "Olivia", "David", "Ava",
+        "William", "Mia", "James", "Isabella", "Joseph", "Charlotte", "Daniel", "Amelia"]
+    name = choice(first_names)
+    data_store.create_player(name)
+    ui.start_game(name)
+
+
 
 
 if __name__ == "__main__":
