@@ -23,13 +23,13 @@ class DataStore:
         # This adds the sample rooms to the data store.
         self.rooms['Lobby'] = dict(posX=0, posY=0, desc="The beginning room..", instructions="Instructions",
                                    visible=True)
-        self.rooms['Master Bedroom'] = dict(posX=-1, posY=0, desc="The Master Bedroom", instructions="Instructions",
+        self.rooms['Master Bedroom'] = dict(posX=1, posY=0, desc="The Master Bedroom", instructions="Instructions",
                                             visible=True)
         self.rooms['Kids room'] = dict(posX=-2, posY=0, desc="Eerily quiet for a children's room",
                                        instructions="Instructions", visible=True)
         self.rooms['En suite'] = dict(posX=-2, posY=0, desc="The draft of the open window sends chills down your "
                                                             "spine..", instructions="Instructions", visible=True)
-        self.rooms['Basement'] = dict(posX=-1, posY=1, desc="There appears to be a dark figure in here",
+        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="There appears to be a dark figure in here",
                                       instructions="It's quite dark, perhaps some light may be useful..", visible=True)
         self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="If you venture down further, who knows what you could find",
                                      instructions="Some light may be useful here...", visible=True)
@@ -150,7 +150,6 @@ class DataStore:
                     "With the key at your disposal, you unlock the door in front of you, "
                     "revealing what appears to be the outside...")
                 self.rooms['Outside?']["visible"] = True
-
 
     def end(self):
         self.end_check = "END"

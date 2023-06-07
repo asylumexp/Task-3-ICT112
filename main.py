@@ -85,7 +85,7 @@ def game():
                 case "Save":
                     data_store.save_room_to_file()
                     data_store.save_player_to_file()
-                    running = False
+                    sys.exit()
 
 
 def test():
