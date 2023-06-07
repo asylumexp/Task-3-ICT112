@@ -84,7 +84,6 @@ class DataStore:
                 elif room_y == pos_y and pos_x == room_x:
                     self.current_room = room
 
-        print(self.current_room)
         if self.current_room == "Basement":
             self.basement()
         elif self.current_room == "Entrance":

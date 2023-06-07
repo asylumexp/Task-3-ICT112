@@ -67,7 +67,7 @@ class Ui:
         self.print_text("You notice words on the wall...", Colours.UNDERLINE, False)
         self.print_text("Lobby", Colours.YELLOW)
 
-    def display_actions(self, rooms, items, holding, extra_text: list):
+    def display_actions(self, _, items, holding, extra_text: list):
         display_actions = ["Move", "Inventory"]
         if items:
             display_actions.append("Pickup")
