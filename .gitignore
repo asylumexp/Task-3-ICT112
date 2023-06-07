@@ -152,3 +152,4 @@ cython_debug/
 .idea/
 *_room.json
 *_player.json
+TEST

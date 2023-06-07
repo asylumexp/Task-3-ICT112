@@ -15,6 +15,7 @@ class Ui:
         self.end = ""
         self.selection = 0
         self.available_actions = []
+        self.test_mode = False
 
     def show_menu(self):
         selection = self.get_menu_selection(["Import rooms from file", "Import sample rooms", "Quit"], "WELCOME")
@@ -311,14 +312,14 @@ class Ui:
                 case 27:
                     sys.exit()
 
-    @staticmethod
-    def flush_input():
-        if sys.platform == "win32":
-            while msvcrt.kbhit():
-                msvcrt.getch()
-        else:
-            # Unix/Linux
-            termios.tcflush(sys.stdin, termios.TCIOFLUSH)
+    def flush_input(self):
+        if not self.test_mode:
+            if sys.platform == "win32":
+                while msvcrt.kbhit():
+                    msvcrt.getch()
+            else:
+                # Unix/Linux
+                termios.tcflush(sys.stdin, termios.TCIOFLUSH)
 
     @staticmethod
     def getch(char_width=1):
