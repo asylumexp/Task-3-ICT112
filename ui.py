@@ -18,20 +18,25 @@ class Ui:
         self.test_mode = False
 
     def show_menu(self):
+        """show_menu function\n
+        Runs, unless in test mode, immediately upon start and checks if the user wants to load a save
+        """
         selection = self.get_menu_selection(["Import rooms from file", "Import sample rooms", "Quit"], "WELCOME")
         return selection
 
-    @staticmethod
-    def bad_action(action: str):
-        print(f"It appears that the {action} inputted was not valid, please try again.")
-
     def wait_for_input(self):
+        """wait_for_input function\n
+        Gets the user to confirm whether they want to continue or not.
+        """
         self.flush_input()
         sleep(.5)
         input(f"{Colours.BLUE}Press Enter to Continue.{Colours.END}\n")
         self.clear_screen()
 
     def import_file(self, files: list):
+        """import_file function\n
+        Runs if user chooses to load a save file on first menu. Displays all local rooms from DS.
+        """
         files.append("Return to main menu")
         selection = self.get_menu_selection(files, "WELCOME")
 
@@ -41,6 +46,9 @@ class Ui:
             return files[selection]
 
     def check_player_data(self, players):
+        """check_player_data function\n
+        Local player files is passed from DS to here and is displayed to user as menu.
+        """
         players.append("Continue as new player")
         selection = self.get_menu_selection(players, "WELCOME")
         if selection == len(players) - 1:
@@ -50,15 +58,13 @@ class Ui:
             return ["", players[selection]]
 
     def start_game(self, player_name: str):
-        self.load()
-        self.story_beginning(player_name)
-
-    def load(self):
+        """start_game function\n
+        Initial story sequence plus load section to make it not feel rushed. Uses self.print_text for story sequence.
+        """
         print(f"{Colours.HEADER}LOADING{Colours.END}\n")
-        # sleep(5)
+        sleep(3)
         self.clear_screen()
 
-    def story_beginning(self, player_name: str):
         self.print_text("You: *groan* ugh", Colours.CYAN)
         self.print_text(f"???: Welcome to your new life {player_name}.", Colours.BOLD)
         self.print_text("Your body jolts from the weird voice, eyes adjusting to the dark.", Colours.UNDERLINE, False)
@@ -68,6 +74,9 @@ class Ui:
         self.print_text("Lobby", Colours.YELLOW)
 
     def display_actions(self, _, items, holding, extra_text: list):
+        """display_actions function\n
+        Takes available actions from DS and displays them to the user to choose from.
+        """
         display_actions = ["Move", "Inventory"]
         if items:
             display_actions.append("Pickup")
@@ -82,6 +91,13 @@ class Ui:
         return display_actions[selection]
 
     def action(self, action, rooms: dict, items: list, holding: list, money: int):
+        """action function\n
+        Displays relevant information for each action:
+            - If choosing Move, then it allows the user to choose a room and return it to main.
+            - If choosing Inventory, allows user to choose an item to use, to open the shop, or return to the main menu.
+            - If choosing Drop, shows the items to drop, shows user they will get money back and how much they get back.
+            - If choosing Pickup, shows all the items to pick, & shows they cant pick it up if they are holding 3 items.
+            - If choosing save, then tells the user its saving and returns to main menu."""
         if action == "Move":
             text = ["To your:", ""]
             actions = []
@@ -187,6 +203,9 @@ class Ui:
             return
 
     def shop(self, items, prices, money, holding):
+        """shop function\n
+        Allows user to buy items, checks if they have enough $$, and if they are holding too many items.
+        """
         text = "What would you like to buy?"
         item_display = ['Return to menu']
         for i in range(len(items)):
@@ -213,6 +232,9 @@ class Ui:
         return [False, "", -1]
 
     def print_text(self, text: str, colour="", end=True):
+        """print_text
+        Used to print text during story sequences or other important sequences, prints out character by character.
+        """
         sleep(.5)
 
         if colour:
@@ -228,6 +250,9 @@ class Ui:
             self.wait_for_input()
 
     def item_used(self, show_to_user):
+        """item_used function
+        Takes information about used item from DS and displays it to user.
+        """
         self.clear_screen()
         self.print_text(show_to_user[0])
 
@@ -249,7 +274,7 @@ class Ui:
                 return selection
 
     def print_options(self, menu: list, text: str | list):
-        """
+        """print_options function
             Description:
                 Prints all the main menu options,
                 changing colours and adding indicators for selected options.
@@ -275,15 +300,14 @@ class Ui:
 
     @staticmethod
     def clear_screen():
-        """
+        """clear_screen function
             Description:
                 Clears screen, with considerations for *nix and Windows operating systems different commands.
         """
-        pass
-        # if os.name == 'posix':
-        #     os.system('clear')
-        # else:
-        #     os.system('cls')
+        if os.name == 'posix':
+            os.system('clear')
+        else:
+            os.system('cls')
 
     def capture_keys(self, max_k):
         while True:
@@ -310,9 +334,13 @@ class Ui:
                         key = "down"
                         return key
                 case 27:
+                    print("Exiting.")
                     sys.exit()
 
     def flush_input(self):
+        """flush_input function\n
+        Flushes input buffer to prevent preparing inputs, does not run if in test mode.
+        """
         if not self.test_mode:
             if sys.platform == "win32":
                 while msvcrt.kbhit():
@@ -323,7 +351,7 @@ class Ui:
 
     @staticmethod
     def getch(char_width=1):
-        """
+        """getch function
             Description:
                 Gets pressed key and returns it
 
@@ -357,6 +385,9 @@ class Ui:
 
 
 class Colours:
+    """Colours class
+    Allows adding colours to strings without the not human readable text.
+    """
     HEADER = '\033[95m'
     BLUE = '\033[94m'
     CYAN = '\033[96m'

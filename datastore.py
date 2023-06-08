@@ -60,10 +60,16 @@ class DataStore:
         self.current_loaded_file.append(self.save_room_to_file())
 
     def create_player(self, name):
+        """create_player function\n
+        Creates the player, as a dictionary, and saves it to file. Takes player name as param.
+        """
         self.player = dict(name=name, pos=(0, 0), items=[], money=0)
         self.save_player_to_file()
 
     def player_available_actions(self):
+        """player_available_actions function\n
+        Gets available rooms, runs functions for rooms, and returns a bunch of information to main.
+        """
         available_rooms = dict(North="", East="", South="", West="")
         pos_x = self.player["pos"][0]
         pos_y = self.player["pos"][1]
@@ -100,6 +106,10 @@ class DataStore:
         return available_rooms, self.item_positions[self.current_room], self.player["items"], self.player['money']
 
     def move(self, room):
+        """move function\n
+        Updates player position in DS and processes items breaking.
+        """
+
         room_x = self.rooms[room]["posX"]
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
@@ -110,6 +120,9 @@ class DataStore:
                 del self.player['items'][item]
 
     def basement(self):
+        """basement function\n
+        Handles the player being attacked by the figure and allowing the user to get the key.
+        """
         if "Basement Figure" not in self.objectives_ran:
             for i in range(len(self.player['items'])):
                 if self.player['items'][i][1]['use'] == "Attack":
@@ -135,6 +148,9 @@ class DataStore:
                         self.objectives_ran.append("Basement Key")
 
     def hallway(self):
+        """hallway function\n
+        Shows a hint if the user activates the flashlight in the hallway, allowing them to avoid being attacked.
+        """
         for i in range(len(self.player['items'])):
             if self.player['items'][i][1]['use'] == "Light":
                 if self.player['items'][i][2] > 0:
@@ -143,6 +159,9 @@ class DataStore:
                         " perhaps it would be wise to arm yourself beforehand..")
 
     def entrance(self):
+        """entrance function\n
+        Handles allowing the user to leave if they are holding the door's key.
+        """
         for i in range(len(self.player['items'])):
             if self.player['items'][i][1]['use'] == "Key":
                 self.extra_text.append(
@@ -151,9 +170,15 @@ class DataStore:
                 self.rooms['Outside?']["visible"] = True
 
     def end(self):
+        """end function\n
+        Indicates to main that the user has 'escaped'
+        """
         self.end_check = "END"
 
     def shop(self):
+        """shop function\n
+        Returns to main what items the user can buy, their prices, and the user's balance.
+        """
         items = []
         prices = []
         for item in self.items:
@@ -163,19 +188,25 @@ class DataStore:
         return items, prices, self.player['money']
 
     def purchased(self, results):
+        """purchased function\n
+        Checks if the user purchased something, if so then picks it up and updates their funds.
+        """
         if results[0]:
-            print(self.player['items'][results[1]])
             self.player['items'].append([results[2], self.items[results[2]]])
             self.player['money'] = results[3]
-            print(self.player['items'], self.player['money'])
 
     def drop(self, item: list):
+        """drop function\n
+        Deletes dropped item from user, and updates their funds to match their new amount of money.
+        """
         del self.player['items'][item[0]]
         self.player['money'] += item[1]
 
     def pickup(self, item: int):
+        """pickup function\n
+        Adds item to player then deletes it from the room.
+        """
         item_picked = self.item_positions[self.current_room][item]
-        # noinspection PyTypeChecker
         item_picked[2] = 0
         self.player['items'].append(item_picked)
         del self.item_positions[self.current_room][item]
@@ -194,13 +225,18 @@ class DataStore:
                 return [f"You cannot use this."]
 
     def save_player_to_file(self):
+        """save_player_to_file function\n
+        Saves player data and current gotten objectives to a JSON file.
+        """
         self.player['objectives'] = self.objectives_ran
         json = dumps(self.player, indent=2)
         with open(f"{self.current_loaded_file[0]}_player.json", 'w') as file:
             file.write(json)
 
-    # This saves the current rooms, items, and item positions.
     def save_room_to_file(self):
+        """save_room_to_file function\n
+        This saves the current rooms, items, and item positions to a JSON file.
+        """
         joined_dict = {"rooms": self.rooms, "items": self.items,
                        "item_pos": self.item_positions}
         json = dumps(joined_dict, indent=2)
@@ -216,12 +252,21 @@ class DataStore:
 
     @staticmethod
     def retrieve_local_rooms():
+        """retrieve_local_rooms function
+        Uses glob to find all _room.json files in the current directory.
+        """
         return glob("*_room.json")
 
     def retrieve_local_players(self):
+        """retrieve_local_player function
+        Uses glob to find all {room file name}_player.json in the current directory.
+        """
         return glob(f"{self.current_loaded_file[0]}_player.json")
 
     def replace_room_data(self, chosen_file: str):
+        """replace_room_data function\n
+        Saves file name to memory, then replaces current data in memory with data from file.
+        """
         head, sep, tail = chosen_file.partition('_')
         self.current_loaded_file.append(str(head))
         with open(chosen_file, 'r') as file:
@@ -231,6 +276,9 @@ class DataStore:
             self.item_positions = data['item_pos']
 
     def replace_player_data(self, file):
+        """replace_player_data function\n
+        Takes file param and loads player from file, as well as objectives.
+        """
         with open(file, 'r') as file:
             data = load(file)
             self.objectives_ran = data['objectives']
