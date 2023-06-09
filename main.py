@@ -57,15 +57,17 @@ def game():
     while running:
         rooms, items, holding, money = data_store.player_available_actions()
 
+        if data_store.end_check == "END":
+            running = False
+            end()
+
         user_action = ui.display_actions(rooms, items, holding, data_store.extra_text)
 
         result = ui.action(user_action, rooms, items, holding, money)
         data_store.extra_text = []
 
-        if data_store.end_check == "END":
-            running = False
-            end()
-        elif result != -1:
+
+        if result != -1:
             match user_action:
                 case "Move":
                     data_store.move(result)

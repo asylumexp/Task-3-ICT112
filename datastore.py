@@ -59,7 +59,7 @@ class DataStore:
         self.item_positions['Kitchen'].append(['Knife', self.items['Knife'], 3])
 
         self.item_positions['Master Bedroom'].append(['Wallet', self.items['Wallet'], 1])
-        self.item_positions['Kids Room'].append(['Wallet', self.items['Wallet'], 1])
+        self.item_positions['Kids room'].append(['Wallet', self.items['Wallet'], 1])
         self.item_positions['En suite'].append(['Wallet', self.items['Wallet'], 1])
         self.item_positions['Hallway'].append(['Wallet', self.items['Wallet'], 1])
         self.item_positions['Kitchen'].append(['Wallet', self.items['Wallet'], 1])
@@ -114,17 +114,12 @@ class DataStore:
 
     def move(self, room):
         """move function\n
-        Updates player position in DS and processes items breaking.
+        Updates player position in DS.
         """
 
         room_x = self.rooms[room]["posX"]
         room_y = self.rooms[room]["posY"]
         self.player['pos'] = (room_x, room_y)
-        for item in range(len(self.player['items'])):
-            if self.player['items'][item][2] >= 2:
-                self.extra_text.append(f"After using the {self.player['items'][item][0]}, it has now broken.")
-                self.types_used.remove(self.player['items'][item][1]["use"])  # Despite what PyCharm says, this is right
-                del self.player['items'][item]
 
     def basement(self):
         """basement function\n
@@ -153,6 +148,7 @@ class DataStore:
                             "With the light, you can see a key in the room, perhaps it will be useful..")
                         self.item_positions['Basement'].append(['Key', self.items['Key'], 1])
                         self.objectives_ran.append("Basement Key")
+                        self.rooms['Outside?']["visible"] = True
 
     def hallway(self):
         """hallway function\n
@@ -174,7 +170,6 @@ class DataStore:
                 self.extra_text.append(
                     "With the key at your disposal, you unlock the door in front of you, "
                     "revealing what appears to be the outside...")
-                self.rooms['Outside?']["visible"] = True
 
     def end(self):
         """end function\n
