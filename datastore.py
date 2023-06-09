@@ -21,33 +21,34 @@ class DataStore:
     # This initialises all the sample rooms.
     def data_import(self):
         # This adds the sample rooms to the data store.
-        self.rooms['Lobby'] = dict(posX=0, posY=0, desc="The beginning room..", instructions="Instructions",
-                                   visible=True)
-        self.rooms['Master Bedroom'] = dict(posX=1, posY=0, desc="The Master Bedroom", instructions="Instructions",
-                                            visible=True)
-        self.rooms['Kids room'] = dict(posX=-2, posY=0, desc="Eerily quiet for a children's room",
-                                       instructions="Instructions", visible=True)
-        self.rooms['En suite'] = dict(posX=-2, posY=0, desc="The draft of the open window sends chills down your "
-                                                            "spine..", instructions="Instructions", visible=True)
-        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="There appears to be a dark figure in here",
-                                      instructions="It's quite dark, perhaps some light may be useful..", visible=True)
-        self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="If you venture down further, who knows what you could find",
-                                     instructions="Some light may be useful here...", visible=True)
-        self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="Easy to find plenty of kitchenware here.",
-                                     instructions="Instructions", visible=True)
+        self.rooms['Lobby'] = dict(posX=0, posY=0, desc="An oddly familiar room, I can't remember how I got here, "
+                                                        "nor do I have any of my stuff either..", visible=True)
+        self.rooms['Master Bedroom'] = dict(posX=1, posY=0, desc="Looks like a massive bedroom.\n"
+                                                                 "Although I have no memories at all, all these"
+                                                                 "rooms feel oddly familiar...",
+                                            instructions="Instructions", visible=True)
+        self.rooms['Kids room'] = dict(posX=-2, posY=0, desc="Eerily quiet for a children's room", visible=True)
+        self.rooms['En suite'] = dict(posX=-2, posY=0, desc="You look through the open window that's making you freeze,"
+                                                            "but can't see anything on the other side...", visible=True)
+        self.rooms['Basement'] = dict(posX=-1, posY=-1, desc="Eerily cold and dark, a flashlight might be good here...",
+                                      visible=True)
+        self.rooms['Hallway'] = dict(posX=0, posY=-1, desc="You can see down the dark staircases,"
+                                                           "some light might be good here.", visible=True)
+        self.rooms['Kitchen'] = dict(posX=0, posY=1, desc="Easy to find plenty of kitchenware here, "
+                                                          "might be good to take some.", visible=True)
         self.rooms['Entrance'] = dict(posX=0, posY=-2,
                                       desc="There's a giant door with a keyhole in it, perhaps a key is needed?",
-                                      instructions="Instructions", visible=True)
+                                      visible=True)
         self.rooms['Outside?'] = dict(posX=0, posY=-3, desc="???", instructions="??", visible=False)
 
-        # This adds the sample items to the data store.
-        self.items['Knife'] = dict(price=12, desc="Pointy stab thing...", use="Attack")
+        # This adds the sample items to the data store, only set the money object to $25
+        self.items['Knife'] = dict(price=12, desc="Sharp knife, useful for defending yourself.", use="Attack")
         self.items['Flashlight'] = dict(price=34, desc="Source of light to guide you.", use="Light")
-        self.items['Key'] = dict(price=34, desc="A mysterious key, found in the basement. "
+        self.items['Key'] = dict(price=-1, desc="A mysterious key, found in the basement. "
                                                 "I would keep a good hold on it.", use="Key")
-        self.items['Wallet'] = dict(price=-1,
+        self.items['Wallet'] = dict(price=25,
                                     desc="The holder of the green goodness that fuels your purchasing adventures.",
-                                    use="None")
+                                    use="Money")
 
         # This makes sure that every room has an instance of item positions, even if it has no items.
         for room in self.rooms:
@@ -56,6 +57,12 @@ class DataStore:
         self.item_positions['Lobby'].append(['Flashlight', self.items['Flashlight'], 1])
         self.item_positions['Lobby'].append(['Wallet', self.items['Wallet'], 1])
         self.item_positions['Kitchen'].append(['Knife', self.items['Knife'], 3])
+
+        self.item_positions['Master Bedroom'].append(['Wallet', self.items['Wallet'], 1])
+        self.item_positions['Kids Room'].append(['Wallet', self.items['Wallet'], 1])
+        self.item_positions['En suite'].append(['Wallet', self.items['Wallet'], 1])
+        self.item_positions['Hallway'].append(['Wallet', self.items['Wallet'], 1])
+        self.item_positions['Kitchen'].append(['Wallet', self.items['Wallet'], 1])
 
         self.current_loaded_file.append(self.save_room_to_file())
 
@@ -221,6 +228,11 @@ class DataStore:
             case 'Attack':
                 self.player['items'][selected][2] += 1
                 return [f"You arm yourself with the {items[selected][0]}."]
+            case 'Money':
+                price = self.player['items'][selected][1]['price']
+                self.player['money'] += price
+                del self.player['items'][selected]
+                return [f"You claim your ${price}, you now have ${self.player['money']}!"]
             case _:
                 return [f"You cannot use this."]
 

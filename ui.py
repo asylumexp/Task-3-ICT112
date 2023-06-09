@@ -149,7 +149,6 @@ class Ui:
 
             selection = self.get_menu_selection(item_display, text)
 
-            print(len(holding))
             if len(holding) == 3:
                 print("You cannot pick this up as you have too many items.")
                 print("Returning to menu.")
@@ -174,7 +173,7 @@ class Ui:
                 print("\n\x1b[1;130;44m Since this has already been used, it cannot be dropped. \x1b[0m")
                 confirmation_item = -1
 
-            elif holding[selection_item][1]['use'] != 'None':
+            elif holding[selection_item][1]['use'] != 'None' and holding[selection_item][1]['use'] != 'Money':
                 confirmation_item = self.get_menu_selection(["Yes", "No"], ["Dropping the {} "
                                                                             "will only return a portion of it's "
                                                                             "${:.2f} worth"
@@ -209,7 +208,7 @@ class Ui:
         text = "What would you like to buy?"
         item_display = ['Return to menu']
         for i in range(len(items)):
-            if prices[i] != -1:
+            if prices[i] != -1 and prices != 25:  # * Only the wallet costs 25.
                 item_display.append("{}: ${:.2f}".format(items[i], prices[i]))
 
         selection_item = self.get_menu_selection(item_display, text)
@@ -397,3 +396,4 @@ class Colours:
     END = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
